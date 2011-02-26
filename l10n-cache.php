@@ -1,7 +1,8 @@
 <?php
 /**
  * @package l10n cache
- * @version 0.2
+ * @version 0.3
+ * @see http://wordpress.org/extend/plugins/l10n-cache/
  *
  * $Id$
  */
@@ -9,7 +10,7 @@
 Plugin Name: l10n cache
 Description: Improves site performance by providing caching for localisation objects (*.mo files)
 Author: Maciej Brencz
-Version: 0.2
+Version: 0.3
 Author URI: http://macbre.net
 */
 
@@ -17,6 +18,8 @@ Author URI: http://macbre.net
  * Inspired by @see http://devel.kostdoktorn.se/cache-translation-object
  */
 class l10nCache {
+	const VERSION = '0.3';
+
 	private $cached = false;
 	private $cacheDir;
 	private $cacheFile;
@@ -29,12 +32,6 @@ class l10nCache {
 	 * Setup Wordpress "hooks"
 	 */
 	function __construct() {
-		// don't run when in wp-admin panel
-		// TODO: fix it :)
-		if (defined('WP_ADMIN') && WP_ADMIN) {
-			return;
-		}
-
 		// set up path to cache directory
 		$this->cacheDir = WP_CONTENT_DIR . '/cache';
 
@@ -46,6 +43,7 @@ class l10nCache {
 
 		// add caching info to the footer
 		add_action('wp_footer', array(&$this, 'addFooter'));
+		add_action('admin_footer', array(&$this, 'addFooter'));
 	}
 
 	/**
@@ -58,7 +56,7 @@ class l10nCache {
 		$this->domain = $domain;
 
 		// caching location
-		$hash = md5($mofile . $wp_version);
+		$hash = md5($mofile . $wp_version . self::VERSION);
 		$this->cacheFile = "{$this->cacheDir}/l10n-cache-{$this->domain}-{$hash}.cache";
 
 		$time = microtime(true);
@@ -94,8 +92,11 @@ class l10nCache {
 			// get localisation object
 			$obj = isset($l10n[$this->domain]) ? $l10n[$this->domain] : false;
 
-			// store it
-			if (!empty($obj)) {
+			if ($obj instanceof MO) {
+				// perform object's cleanup
+				unset($obj->_gettext_select_plural_form);
+
+				// store it
 				file_put_contents($this->cacheFile, serialize($obj));
 			}
 		}
