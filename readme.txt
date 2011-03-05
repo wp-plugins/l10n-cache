@@ -1,9 +1,9 @@
 === l10n cache ===
-Contributors: macbre
+Author: macbre
 Tags: l10n, cache, performance
 Requires at least: 3.0
 Tested up to: 3.0.5
-Stable tag: trunk
+Stable tag: 0.3
 
 Improves site performance by providing caching for localisation objects (*.mo files).
 
